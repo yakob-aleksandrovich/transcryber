@@ -1,0 +1,10 @@
+data/
+models/
+mysql-data/
+.git/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+config.yaml

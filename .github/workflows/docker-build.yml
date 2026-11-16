@@ -1,0 +1,72 @@
+name: Build Docker image
+
+# Build on every push to main and on version tags; build-only (no push) on PRs.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build once and load locally so we can smoke-test before any push.
+      # Runs on every event (incl. PRs), needs no registry credentials.
+      - name: Build (load for smoke test)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: transcryber:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Fail the build if the image can't import its native ML deps or the app.
+      - name: Smoke test
+        run: |
+          docker run --rm transcryber:ci python -c "import ctranslate2, onnxruntime, av, yaml; from app import main; print('smoke ok')"
+
+      # --- Push to Docker Hub (skipped on pull requests) --------------------
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker metadata (tags + labels)
+        id: meta
+        if: github.event_name != 'pull_request'
+        uses: docker/metadata-action@v5
+        with:
+          # Set repo variable DOCKERHUB_IMAGE (e.g. myorg/transcryber) to override;
+          # otherwise defaults to <DOCKERHUB_USERNAME>/transcryber.
+          images: ${{ vars.DOCKERHUB_IMAGE || format('{0}/transcryber', secrets.DOCKERHUB_USERNAME) }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # Reuses the cache from the build above, so this is fast.
+      - name: Build and push
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

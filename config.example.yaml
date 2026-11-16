@@ -1,0 +1,37 @@
+# Transcryber configuration.
+# Copy to config.yaml (gitignored) and edit. In Docker it is mounted read-only
+# at /app/config.yaml. This file holds everything the app needs, secrets included,
+# so keep config.yaml private.
+
+# Session cookie signing key. Generate one with:
+#   python -c "import secrets; print(secrets.token_hex(32))"
+secret_key: ""
+
+# Database connection (SQLAlchemy URL).
+#   Bundled MySQL:  mysql+pymysql://transcryber:<MYSQL_PASSWORD>@db:3306/transcryber
+#   External MySQL: mysql+pymysql://user:pass@host:3306/transcryber
+#   SQLite:         sqlite:////app/data/transcryber.db
+# For the bundled MySQL, this password must match MYSQL_PASSWORD in docker-compose.yml.
+database_url: "sqlite:////app/data/transcryber.db"
+
+whisper:
+  model: medium          # tiny | base | small | medium | large-v3
+  device: cpu            # cpu | cuda
+  compute_type: int8     # int8 (cpu) | float16 (gpu)
+  beam_size: 5
+
+huggingface:
+  token: ""              # optional; for gated/private models or higher rate limits
+
+# Preseeded users. Usernames are plaintext; passwords are BCRYPT HASHES.
+# Generate a hash (then paste it below) with:
+#   docker compose exec transcryber python -m app.cli hash-password
+#   # or locally:  python -m app.cli hash-password
+#
+# On every startup: a listed user is created if missing, and an existing user's
+# password is updated to match the hash here. Users NOT listed are left untouched
+# (never deleted). You can still add/remove users at runtime with the CLI, but a
+# user listed here will have its password reset to this hash on the next restart.
+users: []
+  # - username: alice
+  #   password_hash: "$2b$12$REPLACE_WITH_A_REAL_BCRYPT_HASH_FROM_hash-password"

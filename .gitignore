@@ -1,0 +1,14 @@
+# Runtime data and model cache — never commit these
+data/
+models/
+mysql-data/
+
+# App config (contains secrets + user password hashes)
+config.yaml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env

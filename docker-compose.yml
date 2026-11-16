@@ -1,0 +1,66 @@
+# Transcryber — Wolfi base, runs as nonroot (uid 65532), app container has all
+# Linux capabilities dropped.
+#
+# Uses NAMED volumes (not host bind mounts) for the writable paths. Named volumes
+# inherit the image's nonroot ownership on first use, so the nonroot process can
+# write with no host-side chown. (A bind mount would be owned by host root and the
+# nonroot user could not write to it — if you prefer bind mounts, pre-create the
+# dirs and `chown -R 65532:65532` them first.)
+#
+# Run with:
+#   docker compose --profile bundled-db up --build
+#
+# Create a user:
+#   docker compose exec transcryber python -m app.cli create-user alice
+#
+# Manage the model cache / data volumes:
+#   docker volume ls | grep transcryber
+#   docker compose down -v   # also removes the volumes
+
+services:
+  transcryber:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transcryber
+    ports:
+      - "8000:8000"
+    volumes:
+      # All app config (incl. secrets) + preseeded users. Copy config.example.yaml
+      # to config.yaml first. Mounted read-only.
+      - ./config.yaml:/app/config.yaml:ro
+      - data:/app/data        # transcripts (SQLite) + temp uploads
+      - models:/models        # downloaded model cache
+    # Hardening: the app needs no Linux capabilities (nonroot, listens on 8000,
+    # no raw sockets or runtime chown). Do NOT copy cap_drop: ALL onto the db
+    # service — the mysql:8 entrypoint needs CHOWN/SETUID/SETGID/DAC_OVERRIDE.
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Bundled MySQL — opt in with:  docker compose --profile bundled-db up
+  # Omit the profile (and set DATABASE_URL) to use an external DB or SQLite.
+  db:
+    image: mysql:8
+    container_name: transcryber-db
+    profiles: ["bundled-db"]
+    environment:
+      - MYSQL_DATABASE=transcryber
+      - MYSQL_USER=transcryber
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-transcryber}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-change-me-root}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-change-me-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  data:
+  models:
+  mysql-data:

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transcryber</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <h1>Transcryber</h1>
+      <span id="model-info" class="model-info"></span>
+      <span class="spacer"></span>
+      <span id="user-box" class="user-box" hidden>
+        <span id="username"></span>
+        <button id="logout-btn" class="link-btn light" type="button">Log out</button>
+      </span>
+    </div>
+  </header>
+
+  <!-- Login screen -->
+  <section id="login" class="login" hidden>
+    <form id="login-form" class="login-card">
+      <h2>Sign in</h2>
+      <label>Username<input id="login-username" type="text" autocomplete="username" required /></label>
+      <label>Password<input id="login-password" type="password" autocomplete="current-password" required /></label>
+      <button type="submit">Sign in</button>
+      <p id="login-error" class="error" hidden></p>
+    </form>
+  </section>
+
+  <!-- App -->
+  <main id="app" class="wrap" hidden>
+    <section class="card">
+      <h2>Transcribe an audio file</h2>
+      <form id="upload-form">
+        <label id="dropzone" class="dropzone" for="file-input">
+          <input id="file-input" type="file" accept="audio/*,video/*,.m4a,.mp3,.wav,.ogg,.flac,.mp4,.webm" hidden />
+          <span id="dropzone-text">Click to choose a file, or drop it here</span>
+        </label>
+        <button id="submit-btn" type="submit" disabled>Transcribe</button>
+      </form>
+      <div id="progress" class="progress" hidden>
+        <div class="spinner"></div>
+        <span id="progress-text">Working…</span>
+      </div>
+      <p id="error" class="error" hidden></p>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Transcripts</h2>
+        <button id="refresh-btn" class="link-btn" type="button">Refresh</button>
+      </div>
+      <ul id="transcript-list" class="transcript-list"></ul>
+      <p id="empty" class="muted" hidden>No transcripts yet.</p>
+    </section>
+  </main>
+
+  <!-- Transcript viewer -->
+  <div id="viewer" class="viewer" hidden>
+    <div class="viewer-box">
+      <div class="viewer-head">
+        <h3 id="viewer-title">Transcript</h3>
+        <button id="viewer-close" class="link-btn" type="button">Close</button>
+      </div>
+      <p id="viewer-meta" class="muted"></p>
+      <pre id="viewer-text" class="viewer-text"></pre>
+      <div class="viewer-actions">
+        <a id="viewer-download" class="btn" href="#">Download .txt</a>
+        <button id="viewer-copy" class="btn secondary" type="button">Copy</button>
+        <button id="viewer-delete" class="btn danger" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

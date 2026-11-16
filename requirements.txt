@@ -1,0 +1,15 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+faster-whisper==1.1.1
+# PyAV 19 removed av.open(metadata_errors=), which faster-whisper still passes.
+# Pin below 19 (18.1.0 is what faster-whisper tests against). Drop once a
+# faster-whisper release > 1.2.1 ships the guarded call.
+av==18.1.0
+python-multipart==0.0.20
+requests==2.32.3
+SQLAlchemy==2.0.36
+PyMySQL==1.1.1
+cryptography==44.0.0
+bcrypt==4.2.1
+PyYAML==6.0.2
+itsdangerous==2.2.0
