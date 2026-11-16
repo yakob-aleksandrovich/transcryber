@@ -1,15 +1,23 @@
-fastapi==0.115.6
+# fastapi bumped to a release that allows Starlette 1.x (it only requires
+# starlette>=0.46.0), so the patched Starlette below can be used.
+fastapi==0.163.1
 uvicorn[standard]==0.34.0
 faster-whisper==1.1.1
 # PyAV 19 removed av.open(metadata_errors=), which faster-whisper still passes.
 # Pin below 19 (18.1.0 is what faster-whisper tests against). Drop once a
 # faster-whisper release > 1.2.1 ships the guarded call.
 av==18.1.0
-python-multipart==0.0.20
+python-multipart==0.0.33
 requests==2.32.3
 SQLAlchemy==2.0.36
 PyMySQL==1.1.1
-cryptography==44.0.0
+cryptography==50.0.2
 bcrypt==4.2.1
 PyYAML==6.0.2
 itsdangerous==2.2.0
+# Pinned explicitly (normally a FastAPI transitive dep) to pull the fix for
+# CVE-2026-54283 and the other 2025/2026 Starlette advisories (fixed by 1.3.1).
+starlette==1.10.0
+# Pinned explicitly to upgrade the setuptools that ships in the base image,
+# clearing CVE-2025-47273 / CVE-2026-59890 and later (fixed by 84.1.0).
+setuptools==84.2.1
