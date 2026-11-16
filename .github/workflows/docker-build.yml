@@ -4,6 +4,11 @@ name: Build Docker image
 # Changes that only touch docs or non-build files don't warrant a rebuild, so
 # they're excluded via paths-ignore. Note: paths-ignore does not apply to tag
 # pushes, so version tags always build a release image.
+#
+# workflow_dispatch adds a manual "Run workflow" button that does a full
+# no-cache rebuild and pushes. Use it to pick up rolling base-image (Wolfi/apk)
+# package updates — e.g. a patched setuptools — that the layer cache would
+# otherwise keep masking on normal pushes.
 on:
   push:
     branches: [main]
@@ -22,6 +27,7 @@ on:
       - "config.example.yaml"
       - ".gitignore"
       - "LICENSE"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -44,6 +50,9 @@ jobs:
           context: .
           load: true
           tags: transcryber:ci
+          # Manual runs ignore the layer cache so rolling apk/base updates are
+          # re-fetched; cache-to still runs, refreshing the cache afterwards.
+          no-cache: ${{ github.event_name == 'workflow_dispatch' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -83,5 +92,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          no-cache: ${{ github.event_name == 'workflow_dispatch' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
