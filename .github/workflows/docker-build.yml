@@ -1,12 +1,27 @@
 name: Build Docker image
 
 # Build on every push to main and on version tags; build-only (no push) on PRs.
+# Changes that only touch docs or non-build files don't warrant a rebuild, so
+# they're excluded via paths-ignore. Note: paths-ignore does not apply to tag
+# pushes, so version tags always build a release image.
 on:
   push:
     branches: [main]
     tags: ["v*"]
+    paths-ignore:
+      - "**.md"
+      - ".env.example"
+      - "config.example.yaml"
+      - ".gitignore"
+      - "LICENSE"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".env.example"
+      - "config.example.yaml"
+      - ".gitignore"
+      - "LICENSE"
 
 permissions:
   contents: read
