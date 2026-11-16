@@ -8,7 +8,7 @@ faster-whisper==1.1.1
 # faster-whisper release > 1.2.1 ships the guarded call.
 av==18.1.0
 python-multipart==0.0.33
-requests==2.32.3
+requests==2.34.2
 SQLAlchemy==2.0.36
 PyMySQL==1.1.1
 cryptography==50.0.2
