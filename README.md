@@ -159,14 +159,6 @@ is configured (visible at `/api/status`).
 | base   | ~140 MB | fast     | good balance                       |
 | small  | ~460 MB | moderate | **default — better accuracy**      |
 
-## A note on your GPU
-
-A **GeForce GTX 650** is a Kepler card (CUDA compute capability 3.0). Modern
-PyTorch/CUDA and the CTranslate2 GPU runtime dropped support for cards that old,
-so it **cannot** accelerate Whisper. This app therefore defaults to **CPU**,
-which works well with `faster-whisper` + `int8`. If you later add a newer GPU,
-set `whisper.device: cuda` and `whisper.compute_type: float16` in `config.yaml`.
-
 ## How it works
 
 - **Backend:** FastAPI. Uploads are transcribed in a background worker (one at a
