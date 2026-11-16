@@ -26,6 +26,8 @@ python -c "import secrets; print(secrets.token_hex(32))"
 
 # 2) generate a bcrypt hash for your first user and add it under users: in config.yaml
 docker compose run --rm transcryber python -m app.cli hash-password
+#    ...or, without the image, with htpasswd (apache2-utils); -C 12 matches the app's cost:
+#    htpasswd -bnBC 12 "" 'your-password' | tr -d ':\n'
 
 # 3) point database_url in config.yaml at the bundled MySQL (and match MYSQL_PASSWORD in .env):
 #    database_url: "mysql+pymysql://transcryber:<MYSQL_PASSWORD>@db:3306/transcryber"
