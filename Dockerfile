@@ -31,7 +31,16 @@ ENV HF_HOME=/models \
 COPY requirements.txt .
 # --break-system-packages: this is a single-purpose container, so installing
 # into the system interpreter (PEP 668 "externally managed") is fine here.
-RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
+#
+# After installing deps, remove pip: it is only needed at build time, and the
+# py3.12-pip package vendors a copy of pkg_resources that declares an old,
+# CVE-flagged setuptools (CVE-2025-47273) in pip/_vendor/bom.cdx.json. We first
+# `apk add py3.12-setuptools` to mark setuptools as explicitly-wanted so that
+# removing pip does not cascade-delete it (pip depends on it); the real
+# setuptools (84.2.1) stays for any runtime pkg_resources use.
+RUN pip install --no-cache-dir --break-system-packages -r requirements.txt \
+ && apk add --no-cache py3.12-setuptools \
+ && apk del py3.12-pip
 
 COPY app ./app
 
