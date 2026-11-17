@@ -127,7 +127,9 @@ form.addEventListener("submit", async (e) => {
     showError(err.message);
   } finally {
     progress.hidden = true;
-    submitBtn.disabled = false;
+    // After success the file is cleared (button off). After an error the
+    // file stays selected, so the button stays on for a retry.
+    submitBtn.disabled = !selectedFile;
   }
 });
 
