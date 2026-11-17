@@ -241,6 +241,7 @@ async function openViewer(id) {
 function closeViewer() {
   $("viewer").hidden = true;
   currentViewerId = null;
+  disarmDelete();
 }
 
 $("viewer-close").addEventListener("click", closeViewer);
@@ -258,8 +259,29 @@ $("viewer-copy").addEventListener("click", async () => {
   }
 });
 
-$("viewer-delete").addEventListener("click", async () => {
+// Delete needs two clicks: the first arms the button for a few seconds and
+// changes its label; only a second click within that time deletes.
+const deleteBtn = $("viewer-delete");
+const DELETE_LABEL = deleteBtn.textContent;
+const DELETE_CONFIRM_MS = 4000;
+let deleteTimer = null;
+
+function disarmDelete() {
+  clearTimeout(deleteTimer);
+  deleteTimer = null;
+  deleteBtn.classList.remove("armed");
+  deleteBtn.textContent = DELETE_LABEL;
+}
+
+deleteBtn.addEventListener("click", async () => {
   if (!currentViewerId) return;
+  if (!deleteBtn.classList.contains("armed")) {
+    deleteBtn.classList.add("armed");
+    deleteBtn.textContent = "Click again to delete";
+    deleteTimer = setTimeout(disarmDelete, DELETE_CONFIRM_MS);
+    return;
+  }
+  disarmDelete();
   await api(`/api/transcripts/${currentViewerId}`, { method: "DELETE" });
   closeViewer();
   await loadTranscripts();

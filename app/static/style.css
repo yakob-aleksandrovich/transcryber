@@ -1,14 +1,25 @@
+/* Colour scheme: "Amber Console, lighter" — warm amber on graphite.
+   Every colour is a named role below; components use only these tokens.
+   All text pairs meet WCAG AA (4.5:1) contrast. */
 :root {
-  --inspire: #31ADE3;
-  --ocean: #014263;
-  --tech: #231F20;
-  --cultivate: #70C9CC;
-  --kindle: #E59D33;
-  --bg: #f4f7f9;
-  --card: #ffffff;
-  --border: #e2e8ec;
-  --muted: #6b7680;
-  --danger: #c0392b;
+  color-scheme: dark;            /* native controls and scrollbars follow */
+  --topbar: #1d2127;
+  --topbar-text: #ece8df;
+  --bg: #272b32;                 /* page, and the transcript text area */
+  --card: #31363e;
+  --border: #454c56;
+  --input-border: #7d8592;      /* input outlines, empty dropzone (3:1+) */
+  --text: #ece8df;
+  --muted: #aaa597;
+  --accent: #f0a73a;             /* buttons, links, focus, highlights */
+  --accent-text: #1b1306;        /* text on an amber button */
+  --accent-soft: #3a3428;        /* dropzone hover */
+  --disabled: #454c56;           /* disabled button (e.g. Transcribe, no file yet) */
+  --disabled-text: #aaa597;
+  --hover: #ffd24a;              /* outline buttons fill yellow on hover */
+  --hover-text: #1b1306;
+  --error: #ff8f80;              /* error messages shown as text */
+  --overlay: rgba(10, 11, 13, 0.7);
 }
 
 * { box-sizing: border-box; }
@@ -21,15 +32,16 @@ body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
-  color: var(--tech);
+  color: var(--text);
   line-height: 1.5;
 }
 
 .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
 
 .topbar {
-  background: var(--ocean);
-  color: #fff;
+  background: var(--topbar);
+  color: var(--topbar-text);
+  border-bottom: 1px solid var(--border);
   padding: 18px 0;
   margin-bottom: 28px;
 }
@@ -38,7 +50,7 @@ body {
 .model-info { font-size: 0.8rem; opacity: 0.85; }
 .spacer { flex: 1; }
 .user-box { font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
-.link-btn.light { color: #fff; text-decoration: underline; }
+.link-btn.light { color: var(--topbar-text); text-decoration: underline; }
 
 .login { max-width: 360px; margin: 60px auto; padding: 0 20px; }
 .login-card {
@@ -50,15 +62,17 @@ body {
   flex-direction: column;
   gap: 14px;
 }
-.login-card h2 { margin: 0; color: var(--ocean); }
+.login-card h2 { margin: 0; color: var(--text); }
 .login-card label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: var(--muted); }
 .login-card input {
   font: inherit;
   padding: 9px 11px;
-  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
 }
-.login-card input:focus { outline: 2px solid var(--inspire); border-color: var(--inspire); }
+.login-card input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
 
 .card {
   background: var(--card);
@@ -67,7 +81,7 @@ body {
   padding: 22px;
   margin-bottom: 22px;
 }
-.card h2 { margin: 0 0 16px; font-size: 1.1rem; color: var(--ocean); }
+.card h2 { margin: 0 0 16px; font-size: 1.1rem; color: var(--text); }
 
 .section-head { display: flex; justify-content: space-between; align-items: center; }
 .section-head h2 { margin: 0; }
@@ -76,7 +90,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed var(--cultivate);
+  border: 2px dashed var(--input-border);
   border-radius: 10px;
   padding: 34px 18px;
   text-align: center;
@@ -84,8 +98,8 @@ body {
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
 }
-.dropzone:hover, .dropzone.dragover { background: #eefafb; border-color: var(--inspire); }
-.dropzone.has-file { color: var(--tech); border-style: solid; border-color: var(--inspire); }
+.dropzone:hover, .dropzone.dragover { background: var(--accent-soft); border-color: var(--accent); }
+.dropzone.has-file { color: var(--text); border-style: solid; border-color: var(--accent); }
 
 button, .btn {
   font: inherit;
@@ -93,33 +107,38 @@ button, .btn {
   border: none;
   border-radius: 8px;
   padding: 10px 18px;
-  background: var(--inspire);
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
   display: inline-block;
 }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:disabled { background: var(--disabled); color: var(--disabled-text); cursor: not-allowed; }
 #submit-btn { margin-top: 14px; }
-.btn.secondary { background: var(--cultivate); color: var(--ocean); }
-.btn.danger { background: var(--danger); }
+/* Hollow amber (Download, Copy, Delete). The 1px border replaces 1px of
+   padding so it is the same size as a solid button. Fills yellow on hover. */
+.btn.outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 9px 17px; }
+.btn.outline:hover, .btn.outline:focus-visible { background: var(--hover); border-color: var(--hover); color: var(--hover-text); }
+/* Delete after the first click, waiting for the confirming second click. */
+.btn.outline.armed, .btn.outline.armed:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+button:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .link-btn {
   background: none;
-  color: var(--inspire);
+  color: var(--accent);
   padding: 4px 6px;
 }
 
-.progress { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: var(--ocean); }
+.progress { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: var(--text); }
 .spinner {
   width: 20px; height: 20px;
   border: 3px solid var(--border);
-  border-top-color: var(--inspire);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.error { color: var(--danger); margin-top: 14px; }
+.error { color: var(--error); margin-top: 14px; }
 .muted { color: var(--muted); }
 
 .transcript-list { list-style: none; margin: 10px 0 0; padding: 0; }
@@ -131,19 +150,20 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   cursor: pointer;
   transition: border-color 0.15s;
 }
-.transcript-list li:hover { border-color: var(--inspire); }
-.transcript-list .t-name { font-weight: 600; color: var(--ocean); }
+.transcript-list li:hover { border-color: var(--accent); }
+.transcript-list .t-name { font-weight: 600; color: var(--text); }
 .transcript-list .t-meta { font-size: 0.8rem; color: var(--muted); margin: 2px 0 6px; }
-.transcript-list .t-preview { font-size: 0.9rem; color: var(--tech); }
+.transcript-list .t-preview { font-size: 0.9rem; color: var(--text); }
 
 .viewer {
   position: fixed; inset: 0;
-  background: rgba(2, 20, 30, 0.55);
+  background: var(--overlay);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
 }
 .viewer-box {
-  background: #fff;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   max-width: 720px; width: 100%;
   max-height: 85vh;
@@ -151,7 +171,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   padding: 22px;
 }
 .viewer-head { display: flex; justify-content: space-between; align-items: center; }
-.viewer-head h3 { margin: 0; color: var(--ocean); }
+.viewer-head h3 { margin: 0; color: var(--text); }
 .viewer-text {
   white-space: pre-wrap;
   word-break: break-word;
@@ -162,5 +182,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   flex: 1;
   margin: 10px 0 16px;
   font-family: inherit;
+  color: var(--text);
 }
 .viewer-actions { display: flex; gap: 10px; flex-wrap: wrap; }
