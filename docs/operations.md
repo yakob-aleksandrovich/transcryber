@@ -55,6 +55,19 @@ bind mount would be owned by root, and the app could not write to it. If you
 prefer bind mounts, create the directories first and run
 `chown -R 65532:65532` on them.
 
+## Updating
+
+```bash
+git pull && docker compose up -d --build
+```
+
+When a new version changes the database, the app updates the database
+automatically at startup. You see lines like
+`Running upgrade 0001 -> 0002` in the logs (`docker compose logs transcryber`).
+
+**Back up the database before you update.** A database update cannot be undone
+by going back to an older version of the app.
+
 ## Processing
 
 Transcription runs in a background worker, **one file at a time**. Other uploads

@@ -77,6 +77,8 @@ git pull && docker compose up -d --build      # update to the latest version
 
 Your transcripts, users and the downloaded model are kept in Docker volumes, so
 they survive stops and updates.
+When an update changes the database, Transcryber updates it for you at startup.
+Back up first; see [Updating](docs/operations.md#updating).
 
 ### Before you open it to the internet
 

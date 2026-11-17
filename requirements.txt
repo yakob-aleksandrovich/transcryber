@@ -10,6 +10,8 @@ av==18.1.0
 python-multipart==0.0.33
 requests==2.34.2
 SQLAlchemy==2.0.36
+# Database schema migrations (run automatically at startup; see app/migrations).
+alembic==1.20.1
 PyMySQL==1.1.1
 cryptography==50.0.2
 bcrypt==4.2.1

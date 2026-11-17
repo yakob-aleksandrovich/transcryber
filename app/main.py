@@ -4,6 +4,7 @@ import logging
 import os
 import secrets
 import threading
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -57,14 +58,18 @@ def _run_job(job_id: str, audio_path: str, original_name: str, user_id: int) -> 
     with jobs_lock:
         jobs[job_id]["status"] = "processing"
     logger.info("Job %s: transcribing '%s'…", job_id, original_name)
+    started = time.monotonic()
     try:
         result = transcribe_file(audio_path)
+        # From start of processing to transcript ready; excludes queue wait.
+        processing_seconds = round(time.monotonic() - started, 2)
         logger.info(
-            "Job %s: done — %s, %.1fs of audio, %d chars.",
+            "Job %s: done — %s, %.1fs of audio, %d chars, took %.1fs.",
             job_id,
             result["language"],
             result["duration"],
             len(result["text"]),
+            processing_seconds,
         )
         record = storage.save_transcript(
             user_id=user_id,
@@ -73,6 +78,7 @@ def _run_job(job_id: str, audio_path: str, original_name: str, user_id: int) -> 
             language=result["language"],
             duration=result["duration"],
             segments=result["segments"],
+            processing_seconds=processing_seconds,
         )
         with jobs_lock:
             jobs[job_id].update(status="done", transcript_id=record["id"])

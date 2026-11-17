@@ -10,7 +10,9 @@ def _iso(dt):
     return dt.isoformat() if dt else None
 
 
-def save_transcript(user_id, original_name, text, language, duration, segments) -> dict:
+def save_transcript(
+    user_id, original_name, text, language, duration, segments, processing_seconds=None
+) -> dict:
     tid = uuid.uuid4().hex
     with SessionLocal() as session:
         rec = Transcript(
@@ -19,6 +21,7 @@ def save_transcript(user_id, original_name, text, language, duration, segments) 
             original_name=original_name,
             language=language,
             duration=duration,
+            processing_seconds=processing_seconds,
             text=text,
             segments=json.dumps(segments, ensure_ascii=False),
         )
@@ -42,6 +45,7 @@ def list_transcripts(user_id) -> list[dict]:
                 "created_at": _iso(r.created_at),
                 "language": r.language,
                 "duration": r.duration,
+                "processing_seconds": r.processing_seconds,
                 "preview": (r.text or "")[:160],
             }
             for r in rows
@@ -63,6 +67,7 @@ def load_transcript(user_id, tid) -> dict | None:
             "created_at": _iso(r.created_at),
             "language": r.language,
             "duration": r.duration,
+            "processing_seconds": r.processing_seconds,
             "text": r.text,
             "segments": json.loads(r.segments) if r.segments else [],
         }

@@ -3,11 +3,16 @@
 Backend is chosen entirely by DATABASE_URL, e.g.:
   mysql+pymysql://user:pass@host:3306/transcryber   (MySQL)
   sqlite:////app/data/transcryber.db                 (SQLite)
+
+The schema is managed by Alembic migrations in app/migrations/, applied
+automatically at startup by init_db(). After changing a model here, add a
+migration (see docs/development.md).
 """
 
 import logging
 import time
 from datetime import datetime
+from pathlib import Path
 
 from sqlalchemy import (
     Column,
@@ -18,6 +23,7 @@ from sqlalchemy import (
     String,
     Text,
     create_engine,
+    inspect,
 )
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
@@ -67,20 +73,48 @@ class Transcript(Base):
     original_name = Column(String(512))
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     language = Column(String(32))
-    duration = Column(Float)
+    duration = Column(Float)  # length of the audio, in seconds
+    # Wall-clock seconds from start of processing to transcript ready (includes
+    # model load on the first job). NULL for transcripts made before 0002.
+    processing_seconds = Column(Float)
     text = Column(Text)
     segments = Column(Text)  # JSON-encoded list of segment dicts
 
     user = relationship("User", back_populates="transcripts")
 
 
+MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations"
+# The first migration: the schema that create_all() used to build. Databases
+# from before migrations existed already have it, so they are stamped, not run.
+BASELINE_REVISION = "0001"
+
+
+def _migrate() -> None:
+    """Bring the database schema up to date (new, old or pre-migration DBs)."""
+    from alembic import command
+    from alembic.config import Config
+
+    cfg = Config()
+    cfg.set_main_option("script_location", str(MIGRATIONS_DIR))
+    with engine.begin() as conn:
+        cfg.attributes["connection"] = conn
+        tables = set(inspect(conn).get_table_names())
+        if "alembic_version" not in tables and "users" in tables:
+            logger.info(
+                "Existing database without migration history; marking it as "
+                "baseline revision %s.", BASELINE_REVISION
+            )
+            command.stamp(cfg, BASELINE_REVISION)
+        command.upgrade(cfg, "head")
+
+
 def init_db(retries: int = 30, delay: float = 3.0) -> None:
-    """Create tables, retrying so the app can wait for MySQL to come up."""
+    """Apply migrations, retrying so the app can wait for MySQL to come up."""
     last_err = None
     safe_url = engine.url.render_as_string(hide_password=True)
     for attempt in range(1, retries + 1):
         try:
-            Base.metadata.create_all(engine)
+            _migrate()
             logger.info("Database ready (%s).", safe_url)
             return
         except OperationalError as err:

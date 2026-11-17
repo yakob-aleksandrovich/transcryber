@@ -177,6 +177,8 @@ function fmtMeta(t) {
   if (t.created_at) bits.push(new Date(t.created_at).toLocaleString());
   if (t.language) bits.push(t.language);
   if (t.duration) bits.push(`Length ${fmtDuration(t.duration)}`);
+  // Missing on transcripts made before processing time was recorded.
+  if (t.processing_seconds) bits.push(`Transcribed in ${fmtDuration(t.processing_seconds)}`);
   return bits.join(" · ");
 }
 
