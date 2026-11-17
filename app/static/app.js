@@ -163,11 +163,20 @@ function showError(msg) {
 }
 
 // ---- Transcript list ---------------------------------------------------
+// Seconds -> "m:ss", or "h:mm:ss" from one hour up.
+function fmtDuration(seconds) {
+  const total = Math.round(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = String(total % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
+}
+
 function fmtMeta(t) {
   const bits = [];
   if (t.created_at) bits.push(new Date(t.created_at).toLocaleString());
   if (t.language) bits.push(t.language);
-  if (t.duration) bits.push(`${Math.round(t.duration)}s`);
+  if (t.duration) bits.push(`Length ${fmtDuration(t.duration)}`);
   return bits.join(" · ");
 }
 
