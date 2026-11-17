@@ -15,7 +15,7 @@ secret_key: ""
 database_url: "sqlite:////app/data/transcryber.db"
 
 whisper:
-  model: medium          # tiny | base | small | medium | large-v3
+  model: small           # tiny | base | small | medium | large-v3 (bigger = more accurate, slower)
   device: cpu            # cpu | cuda
   compute_type: int8     # int8 (cpu) | float16 (gpu)
   beam_size: 5

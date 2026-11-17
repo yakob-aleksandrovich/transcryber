@@ -7,13 +7,15 @@
 # nonroot user could not write to it — if you prefer bind mounts, pre-create the
 # dirs and `chown -R 65532:65532` them first.)
 #
-# Run with:
-#   docker compose --profile bundled-db up --build
+# Run with (SQLite, the default in config.example.yaml):
+#   docker compose up -d --build
+# Or with the bundled MySQL (see docs/configuration.md):
+#   docker compose --profile bundled-db up -d --build
 #
 # Create a user:
 #   docker compose exec transcryber python -m app.cli create-user alice
 #
-# Manage the model cache / data volumes:
+# Manage the model cache / data volumes (see docs/operations.md):
 #   docker volume ls | grep transcryber
 #   docker compose down -v   # also removes the volumes
 
