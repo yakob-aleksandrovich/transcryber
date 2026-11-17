@@ -174,10 +174,29 @@ function fmtDuration(seconds) {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
 }
 
+// Whisper language code ("en", "yue", …) -> name ("English", "Cantonese").
+// Names are in English to match the rest of the UI. Falls back to the code if
+// the browser can't resolve it.
+const languageNames = (() => {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "language" });
+  } catch {
+    return null;
+  }
+})();
+
+function fmtLanguage(code) {
+  try {
+    return languageNames?.of(code) || code;
+  } catch {
+    return code;
+  }
+}
+
 function fmtMeta(t) {
   const bits = [];
   if (t.created_at) bits.push(new Date(t.created_at).toLocaleString());
-  if (t.language) bits.push(t.language);
+  if (t.language) bits.push(fmtLanguage(t.language));
   if (t.duration) bits.push(`Length ${fmtDuration(t.duration)}`);
   // Missing on transcripts made before processing time was recorded.
   if (t.processing_seconds) bits.push(`Transcribed in ${fmtDuration(t.processing_seconds)}`);
