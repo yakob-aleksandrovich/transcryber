@@ -25,6 +25,7 @@ from sqlalchemy import (
     create_engine,
     inspect,
 )
+from sqlalchemy.dialects.mysql import MEDIUMTEXT
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
@@ -48,6 +49,11 @@ SessionLocal = sessionmaker(
 )
 
 Base = declarative_base()
+
+# Long text. On MySQL/MariaDB plain TEXT holds only 64 KB, too small for the
+# transcript of a long recording, so use MEDIUMTEXT (16 MB) there. Other
+# databases (SQLite) have no such limit and keep TEXT. See migration 0003.
+LongText = Text().with_variant(MEDIUMTEXT(), "mysql", "mariadb")
 
 
 class User(Base):
@@ -77,8 +83,8 @@ class Transcript(Base):
     # Wall-clock seconds from start of processing to transcript ready (includes
     # model load on the first job). NULL for transcripts made before 0002.
     processing_seconds = Column(Float)
-    text = Column(Text)
-    segments = Column(Text)  # JSON-encoded list of segment dicts
+    text = Column(LongText)
+    segments = Column(LongText)  # JSON-encoded list of segment dicts
 
     user = relationship("User", back_populates="transcripts")
 
