@@ -78,7 +78,7 @@ function setFile(file) {
     dropzone.classList.add("has-file");
     submitBtn.disabled = false;
   } else {
-    dropzoneText.textContent = "Click to choose a file, or drop it here";
+    dropzoneText.textContent = "Click to choose an audio or video file, or drop it here";
     dropzone.classList.remove("has-file");
     submitBtn.disabled = true;
   }

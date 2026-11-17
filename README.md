@@ -1,13 +1,16 @@
 # Transcryber
 
-A self-hosted web app that transcribes audio files **locally** — no cloud, no
-API keys for transcription. Each user signs in and sees only their own
+A self-hosted web app that transcribes audio and video files **locally** — no
+cloud, no API keys for transcription. Each user signs in and sees only their own
 transcripts. Upload a file, get a transcript, keep it or delete it.
 
 Transcription runs on [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
 (a fast CTranslate2 reimplementation of OpenAI Whisper), defaulting to a light
 `small` model on CPU with `int8` quantization.
 
+- **Audio and video:** upload an audio file (mp3, m4a, wav, ogg, flac, …) or a
+  video file (mp4, mov, mkv, webm, …). For video, the audio track is extracted
+  and transcribed; a video with no audio track is rejected with a clear message.
 - **Accounts:** multi-user, with per-user private transcripts. Users are created
   by an admin via a CLI (no open sign-up).
 - **Database:** MySQL or SQLite, selected by `database_url` in `config.yaml`.
@@ -168,13 +171,13 @@ is configured (visible at `/api/status`).
 - **Auth:** signed session cookies (Starlette `SessionMiddleware`); passwords
   hashed with bcrypt. Every `/api/*` route requires a logged-in user.
 - **Storage:** SQLAlchemy models (`users`, `transcripts`) on MySQL or SQLite.
-  Each transcript is owned by a user; the uploaded audio is deleted once
-  transcription finishes.
+  Each transcript is owned by a user; the uploaded file is deleted once
+  transcription finishes (whether it succeeded or failed).
 - **Frontend:** a single static page (login, upload, progress, list, view,
   download, copy, delete).
 - **Container:** Wolfi base (digest-pinned), nonroot user, `cap_drop: ALL` +
-  `no-new-privileges` on the app; audio decoded via PyAV's bundled ffmpeg
-  libraries (no system ffmpeg package).
+  `no-new-privileges` on the app; audio (including the audio track of video
+  files) decoded via PyAV's bundled ffmpeg libraries (no system ffmpeg package).
 
 ## API
 
@@ -203,6 +206,10 @@ All `/api/*` routes except `login` require authentication (session cookie).
   additions.
 - When served over HTTPS, you may want to make the session cookie secure-only
   (set in `SessionMiddleware`).
+- The app sets no upload size limit, and video files can be large. A reverse
+  proxy usually has its own limit (nginx `client_max_body_size` defaults to
+  1 MB), so raise it to fit the files you expect, e.g.
+  `client_max_body_size 2G;`.
 - The app container already runs nonroot with all Linux capabilities dropped.
   The bundled MySQL deliberately keeps its default capabilities — its entrypoint
   needs them to initialise the data dir — so do not add `cap_drop: ALL` there.

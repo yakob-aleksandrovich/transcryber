@@ -17,7 +17,7 @@ from . import config, storage
 from .auth import authenticate, current_user, seed_users
 from .config import DATA_DIR
 from .db import init_db
-from .transcribe import get_model_info, transcribe_file
+from .transcribe import UnsupportedMediaError, get_model_info, transcribe_file
 
 logging.basicConfig(
     level=logging.INFO,
@@ -76,6 +76,11 @@ def _run_job(job_id: str, audio_path: str, original_name: str, user_id: int) -> 
         )
         with jobs_lock:
             jobs[job_id].update(status="done", transcript_id=record["id"])
+    except UnsupportedMediaError as exc:
+        # Expected user error (e.g. a video with no sound): no stack trace.
+        logger.info("Job %s: rejected — %s", job_id, exc)
+        with jobs_lock:
+            jobs[job_id].update(status="error", error=str(exc))
     except Exception as exc:  # noqa: BLE001 - surface any failure to the UI
         logger.exception("Job %s: failed — %s", job_id, exc)
         with jobs_lock:

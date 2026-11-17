@@ -10,6 +10,7 @@ import os
 import threading
 import time
 
+import av
 from faster_whisper import WhisperModel
 
 from . import config
@@ -104,8 +105,38 @@ def get_model_info() -> dict:
     }
 
 
+class UnsupportedMediaError(ValueError):
+    """The uploaded file can't be transcribed (not media, or no audio track).
+
+    The message is meant for the end user and is shown as-is in the UI.
+    """
+
+
+def check_has_audio(path: str) -> None:
+    """Raise UnsupportedMediaError unless the file has a readable audio stream.
+
+    Without this, a video with no audio track fails deep inside PyAV with an
+    unhelpful "IndexError: tuple index out of range".
+    """
+    try:
+        with av.open(path) as container:
+            has_audio = bool(container.streams.audio)
+    except av.FFmpegError as exc:
+        raise UnsupportedMediaError(
+            "This file could not be read as audio or video."
+        ) from exc
+    if not has_audio:
+        raise UnsupportedMediaError(
+            "This file has no audio track, so there is nothing to transcribe."
+        )
+
+
 def transcribe_file(path: str) -> dict:
-    """Transcribe an audio file and return text, language, duration, segments."""
+    """Transcribe an audio or video file; return text, language, duration, segments.
+
+    For video files, only the audio track is used (PyAV extracts it).
+    """
+    check_has_audio(path)
     model = get_model()
     segments, info = model.transcribe(path, beam_size=config.WHISPER_BEAM_SIZE)
 
